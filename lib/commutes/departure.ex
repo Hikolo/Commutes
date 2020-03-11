@@ -1,5 +1,6 @@
 defmodule Commutes.Departure do
   use Ecto.Schema
+  import Ecto.Changeset
   alias Commutes.Stop
 
   schema "departures" do
@@ -11,10 +12,12 @@ defmodule Commutes.Departure do
     belongs_to(:stop, Stop)
   end
 
-  def changeset(struct, params \\ %{}) do
-    struct
-    |> Ecto.Changeset.cast(params, [:line_number, :transport_mode,
-				   :destination, :expectedDateTime])
+  def changeset(departure, params) do
+    departure
+    |> cast(params, [:line_number, :transport_mode,
+		    :destination, :expectedDateTime,
+		    :stop_id])
+    #|> put_assoc(:stop, params.stop)
   end
   
   

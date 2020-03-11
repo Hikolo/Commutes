@@ -55,7 +55,6 @@ defmodule Worker do
   ## Helper Functions
 
   defp departures_of(stop) do
-    
     case stop.stop_id
     |> url_for_site()
     |> HTTPoison.get()
@@ -66,21 +65,23 @@ defmodule Worker do
   end
 
   defp parse_departures({:ok, %HTTPoison.Response{body: body, status_code: 200}},
-  stop) do
-    departures = Poison.Parser.parse!(body, %{})["ResponseData"]
-    types = ["Metros", "Buses", "Trains", "Trams", "Ships"]
-    for departure_type <- types do
-      for departure <- departures[departure_type] do
-	params = %Departure{line_number: departure["LineNumber"],
-			    transport_mode: departure["TransportMode"],
-			    destination: departure["Destination"],
-			    #expectedDateTime: departure["ExpectedDateTime"],
-			    stop_id: stop.stop_id}
-	new_departure = Ecto.build_assoc(stop, :departures, params)
-	IO.inspect(new_departure)
-	update_departures_db(new_departure)
-      end
-    end
+    stop) do
+    Repo.delete_all("departures")
+    data = Poison.Parser.parse!(body, %{})["ResponseData"]
+    ["Metros", "Buses", "Trains", "Trams", "Ships"]
+    |> Enum.map(fn(type) -> data[type] end)
+    |> List.flatten
+    |> Enum.map(fn(departure) ->
+      params  = %{line_number: departure["LineNumber"],
+		  transport_mode: departure["TransportMode"],
+		  destination: departure["Destination"],
+		  expectedDateTime: departure["ExpectedDateTime"]}
+		  #stop_id: stop.stop_id}
+
+      Ecto.build_assoc(stop, :departures)
+      |>Departure.changeset(params)
+      |> update_departures_db
+    end)
   end
 
   defp update_departures_db(departure) do
@@ -109,7 +110,6 @@ defmodule Worker do
   end
 
   defp get_stops() do
-    q = from Stop, select: []
     Repo.all(Stop)
   end
 

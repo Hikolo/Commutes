@@ -6,11 +6,11 @@ defmodule Commutes.Stop do
     field(:stop_id, :string)
     field(:name, :string)
     timestamps()
-    has_many(:departures, Departure)
+    has_many(:departures, Departure, on_replace: :delete)
   end
 
-  def changeset(struct, params \\ %{}) do
-    struct
+  def changeset(stop, params) do
+    stop
     |> Ecto.Changeset.cast(params, [])
     |> Ecto.Changeset.cast_assoc(:departures, required: true)
   end
