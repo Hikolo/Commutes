@@ -1,0 +1,10 @@
+{application,commutes,
+             [{applications,[kernel,stdlib,elixir,logger,poison,httpoison,
+                             postgrex,ecto_sql]},
+              {description,"commutes"},
+              {modules,['Elixir.Commutes','Elixir.Commutes.Application',
+                        'Elixir.Commutes.Departure','Elixir.Commutes.Repo',
+                        'Elixir.Commutes.Stop','Elixir.Worker']},
+              {registered,[]},
+              {vsn,"0.1.0"},
+              {mod,{'Elixir.Commutes.Application',[]}}]}.
