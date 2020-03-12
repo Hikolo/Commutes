@@ -27,8 +27,8 @@ defmodule Worker do
   end
 
   ## Server Callbacks
-  def init(:ok) do
-    {:ok, %{}}
+  def init(state) do
+    {:ok, state}
   end
 
   def handle_call({:add_stop, stop_name}, _from, stats) do
@@ -42,6 +42,7 @@ defmodule Worker do
   end
 
   def handle_call(:update_departures, _from, stats) do
+    Repo.delete_all("departures")
     get_stops()
     |> Enum.map(fn(stop) -> departures_of(stop) end)
     {:reply, "Departures updated", stats}
@@ -51,7 +52,7 @@ defmodule Worker do
     Repo.delete_all("departures")
     {:noreply, state}
   end
-
+  
   ## Helper Functions
 
   defp departures_of(stop) do
@@ -66,7 +67,6 @@ defmodule Worker do
 
   defp parse_departures({:ok, %HTTPoison.Response{body: body, status_code: 200}},
     stop) do
-    Repo.delete_all("departures")
     data = Poison.Parser.parse!(body, %{})["ResponseData"]
     ["Metros", "Buses", "Trains", "Trams", "Ships"]
     |> Enum.map(fn(type) -> data[type] end)
