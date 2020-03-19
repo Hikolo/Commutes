@@ -1,21 +1,19 @@
 # Commutes
+To start the service open an elixir shell in the root of the project with
+iex -S mix
+This compiles and starts the shell.
+To add a stop first start create a worker
+Worker.start_link
+This will create a worker process with a predefined name.
+Then run
+Worker.add_stop("Stop_name")
+With the stop_name you want to add, this will search and add the first result.
+To add and update the departures run
+Worker.update_departures
 
-**TODO: Add description**
+To start the periodically running service run
+Periodically.start_link
+This will create a periodically process that will create a worker and 
+update the departures every 10 minutes.
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `commutes` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:commutes, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/commutes](https://hexdocs.pm/commutes).
-
+Run Worker.reset_datebase to empty the database.

@@ -1,8 +1,10 @@
 defmodule Worker do
   use GenServer
-  import Ecto.{Query, Changeset}
-  alias Ecto.{Query, Changeset}
   alias Commutes.{Repo, Stop, Departure}
+  @moduledoc """
+  #Worker server
+  Adds new stops and updates departures for all stops in database.
+  """
 
   @name CW
 
@@ -11,15 +13,16 @@ defmodule Worker do
     GenServer.start_link(__MODULE__, :ok, opts ++ [name: CW])
   end
 
-  # Will search for stop_name and add the first result to the db
+  # Search for stop_name and add the first result to the db
   @spec add_stop(any) :: any
   def add_stop(stop_name) do
     GenServer.call(@name, {:add_stop, stop_name})
   end
+  
   # Goes through all stops in the db and fetches the upcomming departures
   # And adds them to the db
   def update_departures() do
-    GenServer.call(@name, :update_departures)
+    GenServer.cast(@name, :update_departures) 
   end
   # Removes all stops and departures from db
   def reset_database() do
@@ -27,6 +30,7 @@ defmodule Worker do
   end
 
   ## Server Callbacks
+  ## These are called by the genserver in the client API
   def init(state) do
     {:ok, state}
   end
@@ -41,15 +45,15 @@ defmodule Worker do
     end
   end
 
-  def handle_call(:update_departures, _from, stats) do
+  def handle_cast(:update_departures, state) do
     Repo.delete_all("departures")
     get_stops()
     |> Enum.map(fn(stop) -> departures_of(stop) end)
-    {:reply, "Departures updated", stats}
+    {:noreply,  state}
   end
 
   def handle_cast(:reset_database, state) do
-    Repo.delete_all("departures")
+    Repo.delete_all("stops")
     {:noreply, state}
   end
   
@@ -57,8 +61,8 @@ defmodule Worker do
 
   defp departures_of(stop) do
     case stop.stop_id
-    |> url_for_site()
-    |> HTTPoison.get()
+    |> url_for_site() # Stop_id is added to the url
+    |> HTTPoison.get() # Data is fetched from trafiklab api
     |> parse_departures(stop) do
       [] -> {:error, "No departures found"}
       departures -> {:ok, departures}
@@ -112,8 +116,6 @@ defmodule Worker do
   defp get_stops() do
     Repo.all(Stop)
   end
-
-
 
   defp url_for_stop(stop_id) do
     "https://api.sl.se/api2/typeahead.json?SearchString=#{stop_id}&StationsOnly=True&MaxResults=1&type=S&key=#{Keys.apikeystop()}"

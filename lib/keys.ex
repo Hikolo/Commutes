@@ -1,4 +1,7 @@
 defmodule Keys do
+  @moduledoc """
+  API keys are stored seperatly to be encrypted by git-crypt
+  """
   defp read_file(file) do
     File.read!(file)
   end

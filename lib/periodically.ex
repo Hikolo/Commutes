@@ -1,5 +1,10 @@
-defmodule Commutes.Periodically do
+defmodule Periodically do
   use GenServer
+  @moduledoc """
+  #Periodically
+  Runs worker at start and every 10 minutes.
+  Updates departures for all stops.
+  """
 
   def start_link do
     GenServer.start_link(__MODULE__, %{})
